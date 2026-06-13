@@ -1,0 +1,96 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase"
+
+export default function AddChild() {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  const [name, setName] = useState("")
+  const [age, setAge] = useState("")
+  const [interests, setInterests] = useState("")
+
+  // Load session (same fix as dashboard)
+  useEffect(() => {
+    const load = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (session?.user) {
+        setUser(session.user)
+      }
+
+      const { data: listener } = supabase.auth.onAuthStateChange(
+        (_event, session) => {
+          if (session?.user) {
+            setUser(session.user)
+          }
+          setLoading(false)
+        }
+      )
+
+      return () => listener.subscription.unsubscribe()
+    }
+
+    load()
+  }, [])
+
+  if (loading) return <p style={{ padding: 40 }}>Loading...</p>
+
+  if (!user) {
+    window.location.href = "/login"
+    return null
+  }
+
+  const saveChild = async () => {
+    console.log("USER:", user) // Debug check
+
+    const { error } = await supabase.from("nctable").insert({
+      parent_id: user.id,
+      name,
+      age: Number(age),
+      interests: interests.split(",").map(i => i.trim())
+    })
+
+    if (error) {
+      console.error(error)
+      alert("Error adding child.")
+    } else {
+      alert("Child added!")
+      setName("")
+      setAge("")
+      setInterests("")
+    }
+  }
+
+  return (
+    <div style={{ padding: 40 }}>
+      <h1>Add Child</h1>
+
+      <input
+        placeholder="Child's Name"
+        value={name}
+        onChange={e => setName(e.target.value)}
+        style={{ display: "block", marginBottom: 10 }}
+      />
+
+      <input
+        placeholder="Age"
+        value={age}
+        onChange={e => setAge(e.target.value)}
+        style={{ display: "block", marginBottom: 10 }}
+      />
+
+      <input
+        placeholder="Interests (comma separated)"
+        value={interests}
+        onChange={e => setInterests(e.target.value)}
+        style={{ display: "block", marginBottom: 10 }}
+      />
+
+      <button onClick={saveChild}>
+        Save Child
+      </button>
+    </div>
+  )
+}
