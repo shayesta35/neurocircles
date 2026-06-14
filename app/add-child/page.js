@@ -35,13 +35,15 @@ export default function AddChild() {
     load()
   }, [])
 
-  if (loading) return <p style={{ padding: 40 }}>Loading...</p>
 
-  if (!user) {
+useEffect(() => {
+  if (!loading && !user) {
     window.location.href = "/login"
-    return null
   }
-
+}, [loading, user])
+  if (loading)
+    { return <p style={{ padding: 40 }}>Loading...</p>
+    }
   const saveChild = async () => {
     const interestArray = interests
       .split(",")

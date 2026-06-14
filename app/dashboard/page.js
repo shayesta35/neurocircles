@@ -20,21 +20,27 @@ export default function Dashboard() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // Load session
   useEffect(() => {
     const load = async () => {
       const { data: { session } } = await supabase.auth.getSession()
 
       if (session?.user) {
         setUser(session.user)
-      } else {
-        window.location.href = "/login"
       }
 
       setLoading(false)
     }
 
     load()
-  }, [])
+  }, [supabase])
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!loading && !user) {
+      window.location.href = "/login"
+    }
+  }, [loading, user])
 
   if (loading) return <Text p={10}>Loading...</Text>
 

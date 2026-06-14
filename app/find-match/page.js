@@ -109,13 +109,14 @@ export default function FindMatch() {
     fetchKids()
   }, [user])
 
-  if (loading) return <p style={{ padding: 40 }}>Loading...</p>
-
-  if (!user) {
+useEffect(() => {
+  if (!loading && !user) {
     window.location.href = "/login"
-    return null
   }
-
+}, [loading, user])
+  if (loading) 
+    {return <p style={{ padding: 40 }}>Loading...</p>
+    }
   return (
     <div style={{ padding: 40 }}>
       <h1>Find a Match</h1>
