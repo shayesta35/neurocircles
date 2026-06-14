@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import Link from "next/link"
 import {
   Box,
   Heading,
@@ -12,29 +13,30 @@ import {
   CardHeader,
   CardBody,
   CardFooter,
-  Badge,
-  Stack,
 } from "@chakra-ui/react"
 
 export default function Dashboard() {
+  const supabase = createClientComponentClient()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const load = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) setUser(session.user)
+
+      if (session?.user) {
+        setUser(session.user)
+      } else {
+        window.location.href = "/login"
+      }
+
       setLoading(false)
     }
+
     load()
   }, [])
 
   if (loading) return <Text p={10}>Loading...</Text>
-
-  if (!user) {
-    window.location.href = "/login"
-    return null
-  }
 
   async function logout() {
     await supabase.auth.signOut()
@@ -52,7 +54,8 @@ export default function Dashboard() {
       </Text>
 
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
-        
+
+        {/* Add Child */}
         <Card boxShadow="lg" borderRadius="xl" bg="blue.50">
           <CardHeader>
             <Heading size="md" color="blue.700">Add a Child</Heading>
@@ -63,12 +66,15 @@ export default function Dashboard() {
             </Text>
           </CardBody>
           <CardFooter>
-            <Button colorScheme="blue" w="full" as="a" href="/add-child">
-              ➕ Add Child
-            </Button>
+            <Link href="/add-child">
+              <Button colorScheme="blue" w="full">
+                ➕ Add Child
+              </Button>
+            </Link>
           </CardFooter>
         </Card>
 
+        {/* Find Match */}
         <Card boxShadow="lg" borderRadius="xl" bg="purple.50">
           <CardHeader>
             <Heading size="md" color="purple.700">Find a Match</Heading>
@@ -79,12 +85,15 @@ export default function Dashboard() {
             </Text>
           </CardBody>
           <CardFooter>
-            <Button colorScheme="purple" w="full" as="a" href="/find-match">
-              🔍 Find Match
-            </Button>
+            <Link href="/find-match">
+              <Button colorScheme="purple" w="full">
+                🔍 Find Match
+              </Button>
+            </Link>
           </CardFooter>
         </Card>
 
+        {/* My Kids */}
         <Card boxShadow="lg" borderRadius="xl" bg="green.50">
           <CardHeader>
             <Heading size="md" color="green.700">My Kids</Heading>
@@ -95,12 +104,15 @@ export default function Dashboard() {
             </Text>
           </CardBody>
           <CardFooter>
-            <Button colorScheme="green" w="full" as="a" href="/my-kids">
-              👨‍👩‍👧 View Kids
-            </Button>
+            <Link href="/my-kids">
+              <Button colorScheme="green" w="full">
+                👨‍👩‍👧 View Kids
+              </Button>
+            </Link>
           </CardFooter>
         </Card>
 
+        {/* Logout */}
         <Card boxShadow="lg" borderRadius="xl" bg="red.50">
           <CardHeader>
             <Heading size="md" color="red.700">Logout</Heading>

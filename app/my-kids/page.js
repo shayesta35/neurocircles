@@ -22,14 +22,15 @@ export default function MyKidsPage() {
   useEffect(() => {
     async function loadKids() {
       const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-    const session = await supabase.auth.getSession();
-    console.log("Session:", session);
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
+      console.log("Session:", session);
+      console.log("Session error:", sessionError);
+
+      const user = session?.user;
       console.log("Supabase user:", user);
-      console.log("Supabase error:", userError);
 
       if (!user) {
         setKids([]);
@@ -71,12 +72,16 @@ export default function MyKidsPage() {
         <Text>No kids added yet. Click “Add Child” to get started.</Text>
       ) : (
         <>
-          <h2>Your Kids</h2>
+          <Heading size="md" mb={4}>Your Kids</Heading>
 
           {kids.map((k) => (
-            <div key={k.id} style={{ marginBottom: "12px" }}>
+            <Box key={k.id} p={4} borderWidth="1px" borderRadius="lg" mb={3}>
               <strong>{k.name}</strong> — Age {k.age}
-            </div>
+              <br />
+              <Text fontSize="sm" color="gray.600">
+                Interests: {Array.isArray(k.interests) ? k.interests.join(", ") : k.interests}
+              </Text>
+            </Box>
           ))}
         </>
       )}

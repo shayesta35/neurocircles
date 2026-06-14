@@ -1,14 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 export default function FindMatch() {
+  const supabase = createClientComponentClient()
   const [user, setUser] = useState(null)
   const [children, setChildren] = useState([])
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
 
+  // Load user session
   useEffect(() => {
     const load = async () => {
       const { data: { session } } = await supabase.auth.getSession()
@@ -27,6 +29,17 @@ export default function FindMatch() {
     load()
   }, [])
 
+  // Clean array values from PostgreSQL formatting
+  const cleanArray = arr =>
+    Array.isArray(arr)
+      ? arr.map(x =>
+          typeof x === "string"
+            ? x.replace(/[{}"]/g, "").trim().toLowerCase()
+            : ""
+        )
+      : []
+
+  // Matching logic
   useEffect(() => {
     if (!user) return
 
@@ -36,46 +49,38 @@ export default function FindMatch() {
         .select("*")
         .eq("parent_id", user.id)
 
-      setChildren(myKids || [])
-
       const { data: allKids } = await supabase
         .from("nctable")
         .select("*")
 
-      const normalize = str =>
-        typeof str === "string"
-          ? str.trim().toLowerCase()
-          : ""
-
       const fuzzyMatch = (a, b) => {
-        const A = normalize(a)
-        const B = normalize(b)
-
-        if (!A || !B) return false
-        if (A === B) return true
-        if (A.includes(B) || B.includes(A)) return true
-        if (A.startsWith(B) || B.startsWith(A)) return true
-
+        if (!a || !b) return false
+        if (a === b) return true
+        if (a.includes(b) || b.includes(a)) return true
+        if (a.startsWith(b) || b.startsWith(a)) return true
         return false
       }
 
       const results = []
 
       myKids.forEach(myKid => {
-        const myInterests = Array.isArray(myKid.interests) ? myKid.interests : []
+        const myInterests = cleanArray(myKid.interests)
 
         allKids.forEach(other => {
           if (other.id === myKid.id) return
           if (other.parent_id === user.id) return
 
-          const otherInterests = Array.isArray(other.interests) ? other.interests : []
-
+          const otherInterests = cleanArray(other.interests)
+ console.log("myInterests raw:", myKid.interests)
+    console.log("otherInterests raw:", other.interests)
+    console.log("myInterests cleaned:", myInterests)
+    console.log("otherInterests cleaned:", otherInterests)
           const shared = []
 
           myInterests.forEach(mi => {
             otherInterests.forEach(oi => {
               if (fuzzyMatch(mi, oi)) {
-                shared.push(normalize(mi))
+                shared.push(mi)
               }
             })
           })
@@ -91,6 +96,13 @@ export default function FindMatch() {
         })
       })
 
+      // Debug logs
+      console.log("User in FindMatch:", user)
+      console.log("My Kids:", myKids)
+      console.log("All Kids:", allKids)
+      console.log("Results:", results)
+
+      setChildren(myKids || [])
       setMatches(results)
     }
 
@@ -108,22 +120,22 @@ export default function FindMatch() {
     <div style={{ padding: 40 }}>
       <h1>Find a Match</h1>
 
-     
-
       <h2 style={{ marginTop: 30 }}>Matches Found</h2>
 
-      {matches.length === 0 && <p>No matches yet.</p>}
-
-      {matches.map((m, i) => (
-        <div key={i} style={{ marginBottom: 20 }}>
-          <strong>{m.myKid.name}</strong> matches with{" "}
-          <strong>{m.other.name}</strong>
-          <br />
-          Shared interests: {m.shared.join(", ")}
-          <br />
-          Compatibility Score: {m.score}
-        </div>
-      ))}
+      {matches.length === 0 ? (
+        <p>No matches yet.</p>
+      ) : (
+        matches.map((m, i) => (
+          <div key={i} style={{ marginBottom: 20 }}>
+            <strong>{m.myKid.name}</strong> matches with{" "}
+            <strong>{m.other.name}</strong>
+            <br />
+            Shared interests: {m.shared.join(", ")}
+            <br />
+            Compatibility Score: {m.score}
+          </div>
+        ))
+      )}
     </div>
   )
 }

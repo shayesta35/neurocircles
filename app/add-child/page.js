@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { supabase } from "@/lib/supabase"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 export default function AddChild() {
+  const supabase = createClientComponentClient()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -11,7 +12,6 @@ export default function AddChild() {
   const [age, setAge] = useState("")
   const [interests, setInterests] = useState("")
 
-  // Load session (same fix as dashboard)
   useEffect(() => {
     const load = async () => {
       const { data: { session } } = await supabase.auth.getSession()
@@ -43,13 +43,16 @@ export default function AddChild() {
   }
 
   const saveChild = async () => {
-    console.log("USER:", user) // Debug check
+    const interestArray = interests
+      .split(",")
+      .map(i => i.trim())
+      .filter(i => i.length > 0)
 
     const { error } = await supabase.from("nctable").insert({
       parent_id: user.id,
       name,
       age: Number(age),
-      interests: interests.split(",").map(i => i.trim())
+      interests: interestArray
     })
 
     if (error) {
