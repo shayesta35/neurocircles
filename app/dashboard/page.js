@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import Link from "next/link"
+import { useEffect, useState } from "react";
+import { createBrowserClient } from "@supabase/ssr";
+import Link from "next/link";
 import {
   Box,
   Heading,
@@ -13,40 +13,44 @@ import {
   CardHeader,
   CardBody,
   CardFooter,
-} from "@chakra-ui/react"
+} from "@chakra-ui/react";
 
 export default function Dashboard() {
-  const supabase = createClientComponentClient()
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Load session
   useEffect(() => {
-    const load = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+    async function load() {
+      const { data: { session } } = await supabase.auth.getSession();
 
       if (session?.user) {
-        setUser(session.user)
+        setUser(session.user);
       }
 
-      setLoading(false)
+      setLoading(false);
     }
 
-    load()
-  }, [supabase])
+    load();
+  }, []);
 
   // Redirect if not logged in
   useEffect(() => {
     if (!loading && !user) {
-      window.location.href = "/login"
+      window.location.href = "/login";
     }
-  }, [loading, user])
+  }, [loading, user]);
 
-  if (loading) return <Text p={10}>Loading...</Text>
+  if (loading) return <Text p={10}>Loading...</Text>;
 
   async function logout() {
-    await supabase.auth.signOut()
-    window.location.href = "/login"
+    await supabase.auth.signOut();
+    window.location.href = "/login";
   }
 
   return (
@@ -60,7 +64,6 @@ export default function Dashboard() {
       </Text>
 
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
-
         {/* Add Child */}
         <Card boxShadow="lg" borderRadius="xl" bg="blue.50">
           <CardHeader>
@@ -98,8 +101,7 @@ export default function Dashboard() {
             </Link>
           </CardFooter>
         </Card>
-
-        {/* My Kids */}
+{/* My Kids */}
         <Card boxShadow="lg" borderRadius="xl" bg="green.50">
           <CardHeader>
             <Heading size="md" color="green.700">My Kids</Heading>
@@ -134,8 +136,7 @@ export default function Dashboard() {
             </Button>
           </CardFooter>
         </Card>
-
       </SimpleGrid>
     </Box>
-  )
+  );
 }

@@ -1,37 +1,45 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { useState } from "react";
+import { createBrowserClient } from "@supabase/ssr";
 
 export default function Login() {
-  const supabase = createClientComponentClient()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   async function signIn() {
-    setError("")
+    setError("");
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
-      password
-    })
+      password,
+    });
+
     if (error) {
-      setError(error.message)
+      setError(error.message);
     } else {
-      window.location.href = "/dashboard"
+      window.location.href = "/dashboard";
     }
   }
 
   async function signUp() {
-    setError("")
+    setError("");
+
     const { error } = await supabase.auth.signUp({
       email,
-      password
-    })
+      password,
+    });
+
     if (error) {
-      setError(error.message)
+      setError(error.message);
     } else {
-      alert("Account created! You can now log in.")
+      alert("Account created! You can now log in.");
     }
   }
 
@@ -42,7 +50,7 @@ export default function Login() {
       <input
         placeholder="Email"
         value={email}
-        onChange={e => setEmail(e.target.value)}
+        onChange={(e) => setEmail(e.target.value)}
         style={{ display: "block", marginBottom: 10 }}
       />
 
@@ -50,7 +58,7 @@ export default function Login() {
         placeholder="Password"
         type="password"
         value={password}
-        onChange={e => setPassword(e.target.value)}
+        onChange={(e) => setPassword(e.target.value)}
         style={{ display: "block", marginBottom: 10 }}
       />
 
@@ -60,9 +68,7 @@ export default function Login() {
         Login
       </button>
 
-      <button onClick={signUp}>
-        Create Account
-      </button>
+      <button onClick={signUp}>Create Account</button>
     </div>
-  )
+  );
 }

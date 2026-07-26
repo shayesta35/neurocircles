@@ -10,10 +10,14 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import Link from "next/link";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserClient } from "@supabase/ssr";
 
 export default function MyKidsPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+
   const [kids, setKids] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -58,7 +62,6 @@ export default function MyKidsPage() {
     <Box p={6}>
       <Flex justify="space-between" align="center" mb={6}>
         <Heading size="lg">My Kids</Heading>
-
         <Link href="/add-child">
           <Button colorScheme="blue">Add Child</Button>
         </Link>
@@ -75,11 +78,20 @@ export default function MyKidsPage() {
           <Heading size="md" mb={4}>Your Kids</Heading>
 
           {kids.map((k) => (
-            <Box key={k.id} p={4} borderWidth="1px" borderRadius="lg" mb={3}>
+            <Box
+              key={k.id}
+              p={4}
+              borderWidth="1px"
+              borderRadius="lg"
+              mb={3}
+            >
               <strong>{k.name}</strong> — Age {k.age}
               <br />
               <Text fontSize="sm" color="gray.600">
-                Interests: {Array.isArray(k.interests) ? k.interests.join(", ") : k.interests}
+                Interests:{" "}
+                {Array.isArray(k.interests)
+                  ? k.interests.join(", ")
+                  : k.interests}
               </Text>
             </Box>
           ))}
